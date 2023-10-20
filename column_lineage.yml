@@ -1,0 +1,39 @@
+#Develop a way to access the column lineage for all Snowflake tables or for a certain database/schema
+
+trigger:
+ - main
+
+pool:
+  vmImage: ubuntu-latest
+
+parameters:
+- name: DATABASE
+  type: string
+  default: ''
+- name: env
+  displayName: Variable Group
+  type: string
+  default: SNOWFLAKE_CREDENTIALS_PIPELINE
+  values:
+  - SNOWFLAKE_CREDENTIALS_PIPELINE
+  - SNOWFLAKE_CREDENTIALS_LUIS
+  
+
+variables:
+- group: ${{ parameters.env }}
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(python.version)'
+  displayName: 'Use Python $(python.version)'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Install dependencies'
+
+- script: |
+    export SNOWFLAKE_PWD=$(SNOWFLAKE_PWD)
+    python MANAGEMENT/DATA_PRODUCT_CREATION_UTILITIES/column_lineage.py -d ${{ parameters.DATABASE }}
+  displayName: 'Show Column Lineage'

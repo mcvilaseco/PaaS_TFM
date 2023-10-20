@@ -1,0 +1,38 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+parameters:
+- name: New_Database_Name
+  displayName: New DATABASE name
+  type: string
+  default: ''
+- name: env
+  displayName: Variable Group
+  type: string
+  default: SNOWFLAKE_CREDENTIALS_PIPELINE
+  values:
+  - SNOWFLAKE_CREDENTIALS_PIPELINE
+  - SNOWFLAKE_CREDENTIALS_LUIS
+  
+
+variables:
+- group: ${{ parameters.env }}
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(python.version)'
+  displayName: 'Use Python $(python.version)'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Install dependencies'
+
+- script: |
+    export SNOWFLAKE_PWD=$(SNOWFLAKE_PWD)
+    python MANAGEMENT/DATA_PRODUCT_CREATION_UTILITIES/deploy_database.py -n ${{ parameters.New_Database_Name }}
+  displayName: 'Deploy database'

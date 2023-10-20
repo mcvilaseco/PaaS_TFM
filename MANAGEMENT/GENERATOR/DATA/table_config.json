@@ -1,0 +1,10 @@
+{
+    "schema_name": "DATA",
+    "database_name": "PRACTICAS_OURENSE",
+    "table_name": "prueba",
+    "columns": [
+        {"name": "id", "type": "INT"},
+        {"name": "columnaA", "type": "VARCHAR(255)"},
+        {"name": "columnaB", "type": "VARCHAR(255)"}
+    ]
+}

@@ -1,0 +1,24 @@
+trigger:
+- create_schema.py
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: SNOWFLAKE_CREDENTIALS_PEDRO
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(python.version)'
+  displayName: 'Use Python $(python.version)'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Install dependencies'
+
+- script: |
+    export SNOWFLAKE_PWD=$(SNOWFLAKE_PWD)
+    python MANAGEMENT/DATA_PRODUCT_CREATION_UTILITIES/create_schema.py -sch "MY_SCHEMA" -db "MY_DB"
+  displayName: 'create_schema'

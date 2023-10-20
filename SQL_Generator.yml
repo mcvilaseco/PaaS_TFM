@@ -1,0 +1,50 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+parameters:
+- name: env
+  displayName: Variable Group
+  type: string
+  default: SNOWFLAKE_CREDENTIALS_PIPELINE
+  values:
+  - SNOWFLAKE_CREDENTIALS_PIPELINE
+  - SNOWFLAKE_CREDENTIALS_LUIS
+  
+- name: template
+  displayName: Jinja2 Template
+  type: string
+  default: ''
+
+- name: data
+  displayName: JSON Data file
+  type: string
+  default: ''
+
+variables:
+- group: ${{ parameters.env }}
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(python.version)'
+  displayName: 'Use Python $(python.version)'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+    pip install jinja2
+  displayName: 'Install dependencies'
+
+- script: |
+    export SNOWFLAKE_PWD=$(SNOWFLAKE_PWD)
+    python MANAGEMENT/GENERATOR/SQL_Generator.py --template ${{ parameters.template }} -d ${{ parameters.data }}
+  displayName: 'Generate SQL script'
+
+#- task: PublishBuildArtifacts@1
+#  inputs:
+#    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+#    ArtifactName: 'output_sql' 
+#  displayName: 'Saving SQL output file' 

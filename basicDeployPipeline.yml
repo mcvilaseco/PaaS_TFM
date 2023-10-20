@@ -1,0 +1,56 @@
+trigger:
+- basicSQLDeploy
+
+pool:
+  vmImage: ubuntu-latest
+
+parameters:
+- name: res
+  type: boolean
+  default: false
+
+- name: env
+  displayName: Variable Group
+  type: string
+  default: SNOWFLAKE_CREDENTIALS_PIPELINE
+  values:
+  - SNOWFLAKE_CREDENTIALS_PIPELINE
+  - SNOWFLAKE_CREDENTIALS_LUIS
+  - SNOWFLAKE_CREDENTIALS_ANA
+  - SNOWFLAKE_CREDENTIALS_MIGUEL
+  - SNOWFLAKE_CREDENTIALS_PEDRO
+  
+
+variables:
+- group: ${{ parameters.env }}
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(python.version)'
+  displayName: 'Use Python $(python.version)'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Install dependencies'
+
+- script: |
+    export SNOWFLAKE_PWD=$(SNOWFLAKE_PWD)
+    if [ "${{ parameters.res }}" ]; then
+        if python MANAGEMENT/DATA_PRODUCT_CREATION_UTILITIES/basicSQLDeploy.py -f ./pruebaP.sql --res; then
+            echo "Tests passed successfully"
+        else
+            echo "Tests failed"
+            exit 1  # Si los tests fallan, finaliza la ejecución con un código de error
+        fi
+    else
+        if python basicSQLDeploy.py -f ./pruebaP.sql; then
+            echo "Tests passed successfully"
+        else
+            echo "Tests failed"
+            exit 1  # Si los tests fallan, finaliza la ejecución con un código de error
+        fi
+    fi
+  displayName: 'pytest'
+
